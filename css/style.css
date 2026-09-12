@@ -129,7 +129,13 @@ h1 span { color: #778196; }
   line-height: 1.72;
 }
 
-.actions { margin-top: 32px; }
+.actions {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
 
 .button {
   display: inline-flex;
@@ -145,13 +151,35 @@ h1 span { color: #778196; }
   font-size: 14px;
   font-weight: 700;
   box-shadow: 0 10px 24px rgba(30,62,110,.08);
-  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.button-marketplace {
+  gap: 10px;
+}
+
+.button-status {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid #d6deea;
+  border-radius: 5px;
+  background: #eef2f7;
+  color: #7d8796;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
 .button:hover {
   transform: translateY(-2px);
   border-color: #bfd0e8;
   box-shadow: 0 14px 28px rgba(30,62,110,.12);
+}
+
+.button:hover .button-status {
+  border-color: #c9d8ed;
+  background: #e7edf6;
 }
 
 .contact {
@@ -194,6 +222,8 @@ h1 span { color: #778196; }
   .navbar { padding: 19px 0; }
   .brand img { width: 34px; height: 34px; }
   .hero { padding: 58px 0 72px; }
+  .actions { align-items: stretch; }
+  .actions .button { width: 100%; justify-content: space-between; }
   h1 { font-size: clamp(45px, 13vw, 66px); }
   .footer { flex-direction: column; gap: 8px; }
 }
