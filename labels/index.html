@@ -197,6 +197,11 @@
       font-size: 12px;
     }
 
+    .custom-product {
+      display: none;
+      margin-top: 12px;
+    }
+
     .generate-btn,
     .print-btn {
       width: 100%;
@@ -483,7 +488,13 @@
             <option value="">Select a product...</option>
             <option value="AMD Ryzen 7 7800X3D">AMD Ryzen 7 7800X3D</option>
             <option value="AMD Ryzen 7 9800X3D">AMD Ryzen 7 9800X3D</option>
+            <option value="custom">Custom</option>
           </select>
+
+          <div class="custom-product" id="customProductWrap">
+            <label for="customProduct">Custom Product Name</label>
+            <input id="customProduct" name="customProduct" type="text" maxlength="100" placeholder="Enter your own product name" autocomplete="off">
+          </div>
         </div>
 
         <div class="field">
@@ -556,6 +567,8 @@
     (function () {
       const form = document.getElementById('labelForm');
       const product = document.getElementById('product');
+      const customProductWrap = document.getElementById('customProductWrap');
+      const customProduct = document.getElementById('customProduct');
       const quantity = document.getElementById('quantity');
       const identifier = document.getElementById('identifier');
       const error = document.getElementById('error');
@@ -614,18 +627,35 @@
         `;
       }
 
+      product.addEventListener('change', function () {
+        const isCustom = product.value === 'custom';
+        customProductWrap.style.display = isCustom ? 'block' : 'none';
+
+        if (!isCustom) {
+          customProduct.value = '';
+        }
+      });
+
       form.addEventListener('submit', function (event) {
         event.preventDefault();
         clearError();
 
-        const selectedProduct = product.value.trim();
+        const selectedValue = product.value.trim();
+        const customProductName = customProduct.value.trim();
+        const selectedProduct = selectedValue === 'custom' ? customProductName : selectedValue;
         const qtyValue = quantity.value.trim();
         const serialValue = identifier.value.trim();
         const qty = Number(qtyValue);
 
-        if (!selectedProduct) {
+        if (!selectedValue) {
           showError('Please select a product.');
           product.focus();
+          return;
+        }
+
+        if (selectedValue === 'custom' && !customProductName) {
+          showError('Please enter a custom product name.');
+          customProduct.focus();
           return;
         }
 
