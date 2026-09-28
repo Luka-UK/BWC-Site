@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="eBay UK business seller fee calculator for Blackwell Components.">
+  <link rel="icon" type="image/png" href="../assets/favicon.png">
+  <title>eBay Fee Calculator — Blackwell Components</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #e9edf3;
+      --surface: #ffffff;
+      --surface-soft: #f6f8fb;
+      --border: #d5dbe4;
+      --border-strong: #c6d0dc;
+      --text: #111827;
+      --muted: #667085;
+      --soft: #8b95a5;
+      --blue: #0b56c9;
+      --blue-dark: #083f92;
+      --blue-soft: #eef5fd;
+      --green: #1fa463;
+      --red: #b44747;
+    }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(35,114,224,.08), transparent 28%),
+        radial-gradient(circle at 90% 90%, rgba(71,130,226,.06), transparent 25%),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; }
+
+    .page {
+      width: min(1100px, calc(100% - 48px));
+      min-height: 100vh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ambient {
+      position: fixed;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      opacity: .24;
+      z-index: -1;
+    }
+
+    .ambient-left { top: -180px; left: -170px; background: rgba(35,114,224,.22); }
+    .ambient-right { right: -180px; bottom: -170px; background: rgba(89,147,241,.18); }
+
+    .navbar {
+      padding: 18px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+
+    .brand img {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .back-link {
+      color: #31527f;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .back-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+    .hero {
+      padding: 28px 0 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(248,250,252,.74);
+      color: #596579;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      box-shadow: 0 6px 22px rgba(16,24,40,.045);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(31,164,99,.10);
+    }
+
+    h1 {
+      margin: 20px 0 12px;
+      max-width: 820px;
+      font-size: clamp(44px, 6vw, 66px);
+      line-height: .98;
+      letter-spacing: -.05em;
+    }
+
+    .intro {
+      margin: 0;
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .source-note {
+      margin-top: 16px;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .source-note a {
+      color: #31527f;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .source-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr);
+      gap: 18px;
+      align-items: start;
+      padding-bottom: 24px;
+    }
+
+    .card {
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(30,62,110,.07);
+    }
+
+    .calculator {
+      padding: 28px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--blue);
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+
+    .section-heading {
+      margin-top: 7px;
+      font-size: 24px;
+      line-height: 1.2;
+      font-weight: 760;
+      letter-spacing: -.025em;
+    }
+
+    .section-rule {
+      width: 50px;
+      height: 3px;
+      margin: 14px 0 22px;
+      background: var(--blue);
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    .field + .field { margin-top: 0; }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: #25334a;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 7px;
+    }
+
+    .label-row label { margin: 0; }
+
+    .mini-note {
+      color: var(--soft);
+      font-size: 11px;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: #ffffff;
+      color: var(--text);
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .16s ease, box-shadow .16s ease;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      border-color: #7aa7e7;
+      box-shadow: 0 0 0 4px rgba(11,86,201,.10);
+    }
+
+    .hint {
+      margin-top: 6px;
+      color: var(--soft);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .subsection {
+      margin-top: 27px;
+      padding-top: 24px;
+      border-top: 1px solid #e2e7ed;
+    }
+
+    .toggle-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 14px;
+      border: 1px solid #dde3ea;
+      border-radius: 10px;
+      background: #fafbfd;
+    }
+
+    .toggle input {
+      margin: 2px 0 0;
+      accent-color: var(--blue);
+    }
+
+    .toggle-copy {
+      flex: 1;
+    }
+
+    .toggle-title {
+      color: #26344a;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .toggle-note {
+      margin-top: 2px;
+      color: var(--soft);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .conditional {
+      display: none;
+      margin-top: 12px;
+      padding: 15px;
+      border: 1px solid #dce4ee;
+      border-radius: 10px;
+      background: var(--blue-soft);
+    }
+
+    .conditional.show { display: block; }
+
+    .two-col-small {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .calculate-btn {
+      width: 100%;
+      min-height: 52px;
+      margin-top: 25px;
+      border: 0;
+      border-radius: 11px;
+      background: var(--blue);
+      color: #ffffff;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 750;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(11,86,201,.18);
+      transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
+    }
+
+    .calculate-btn:hover {
+      transform: translateY(-1px);
+      background: var(--blue-dark);
+      box-shadow: 0 13px 26px rgba(11,86,201,.22);
+    }
+
+    .error {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid #e5c2c2;
+      border-left: 4px solid #b44747;
+      border-radius: 9px;
+      background: #fff8f8;
+      color: #7e3030;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .results {
+      padding: 0;
+      overflow: hidden;
+      position: sticky;
+      top: 20px;
+    }
+
+    .results-head {
+      padding: 27px 27px 22px;
+      background: linear-gradient(135deg,#f7faff 0%,#edf4fd 100%);
+      border-bottom: 1px solid #d8e2ee;
+    }
+
+    .result-main {
+      margin-top: 7px;
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -.045em;
+      color: #18212c;
+    }
+
+    .result-sub {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .breakdown {
+      padding: 23px 27px 26px;
+    }
+
+    .break-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 10px 0;
+      color: #586474;
+      font-size: 13px;
+      border-bottom: 1px solid #edf0f3;
+    }
+
+    .break-row:last-child { border-bottom: 0; }
+
+    .break-row strong {
+      color: #20242a;
+      font-weight: 750;
+      text-align: right;
+    }
+
+    .break-row.total {
+      margin-top: 6px;
+      padding-top: 15px;
+      border-top: 1px solid #d8dee6;
+      border-bottom: 0;
+      color: #20242a;
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .break-row.payout {
+      margin: 8px -10px 0;
+      padding: 14px 10px;
+      border: 1px solid #cae3d5;
+      border-radius: 10px;
+      background: #f4fbf7;
+      color: #1d6c43;
+      font-weight: 750;
+    }
+
+    .break-row.payout strong { color: #17613c; }
+
+    .rate-box {
+      margin-top: 18px;
+      padding: 15px;
+      border: 1px solid #dce4ee;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .rate-box-title {
+      color: #657186;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .rate-box-value {
+      margin-top: 5px;
+      color: #1d2939;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .info-card {
+      margin-top: 18px;
+      padding: 22px 27px 24px;
+    }
+
+    .info-card-bottom {
+      grid-column: 1 / -1;
+    }
+
+    .info-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .info-item {
+      padding: 13px 14px;
+      border: 1px solid #e0e5eb;
+      border-radius: 10px;
+      background: #fafbfd;
+    }
+
+    .info-item strong {
+      display: block;
+      color: #27354a;
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+
+    .info-item span {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 22px 0 26px;
+      border-top: 1px solid var(--border);
+      color: #8b95a5;
+      font-size: 12px;
+    }
+
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
+      .results { position: static; }
+      .info-card-bottom { grid-column: auto; }
+    }
+
+    @media (max-width: 620px) {
+      .page { width: min(100% - 30px, 1100px); }
+      .navbar { padding: 19px 0; }
+      .hero { padding: 36px 0 27px; }
+      .field-grid,
+      .two-col-small { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .calculator { padding: 21px; }
+      .results-head,
+      .breakdown,
+      .info-card { padding-left: 21px; padding-right: 21px; }
+      .footer { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient ambient-left"></div>
+  <div class="ambient ambient-right"></div>
+
+  <main class="page">
+    <header class="navbar">
+      <a class="brand" href="../" aria-label="Blackwell Components home">
+        <img src="../assets/logo.png" alt="Blackwell Components logo">
+        <span>Blackwell Components</span>
+      </a>
+      <a class="back-link" href="../">Back to website</a>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">
+        <span class="status-dot"></span>
+        Internal business tool
+      </div>
+      <h1>eBay fee calculator.</h1>
+      <p class="intro">
+        Estimate the eBay UK business seller fees on a sale, including category-based final value fees,
+        the per-order charge, regulatory operating fee, international fee, insertion fee and 20% VAT on eBay fees.
+      </p>
+      <div class="source-note">
+        Rates are based on eBay UK's business seller fee information, last updated 4 August 2026.
+        <a href="https://www.ebay.co.uk/help/selling/fees-credits-invoices/fees-business-sellers-activated-managed-payments?id=4809" target="_blank" rel="noopener">View eBay's official fee page</a>.
+      </div>
+    </section>
+
+    <section class="layout">
+      <div>
+        <div class="card calculator">
+          <div class="section-title">Sale details</div>
+          <div class="section-heading">Calculate your eBay costs</div>
+          <div class="section-rule"></div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="salePrice">Sold price</label>
+              <input id="salePrice" type="number" min="0" step="0.01" placeholder="0.00">
+              <div class="hint">Enter the item price paid by the buyer.</div>
+            </div>
+
+            <div class="field full">
+              <div class="label-row">
+                <label for="category">eBay category / subcategory</label>
+                <span class="mini-note" id="rateHint">Select a category</span>
+              </div>
+              <select id="category">
+                <option value="">Select a category...</option>
+              </select>
+              <div class="hint">Specific subcategories are included where eBay lists a different rate or tier.</div>
+            </div>
+
+            <div class="field">
+              <label for="international">Delivery destination</label>
+              <select id="international">
+                <option value="uk">UK — no international fee</option>
+                <option value="euro">Eurozone &amp; Northern Europe — 1.05%</option>
+                <option value="usca">US &amp; Canada — 1.80%</option>
+                <option value="other">All other countries — 2.00%</option>
+              </select>
+              <div class="hint">eBay bases the international fee on the buyer's delivery address. This can apply to international sales using services such as GSP/EIS.</div>
+            </div>
+
+            <div class="field">
+              <label for="insertionFee">Insertion fee (ex VAT)</label>
+              <input id="insertionFee" type="number" min="0" step="0.01" value="0.30">
+              <div class="hint">Your current 36p inclusive rate is 30p + 20% VAT.</div>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="section-title">Optional / conditional fees</div>
+            <div class="section-heading" style="font-size:20px;">Add anything that applies to this sale</div>
+
+            <div class="toggle-grid" style="margin-top:17px;">
+
+              <label class="toggle">
+                <input id="secondCategory" type="checkbox">
+                <span class="toggle-copy">
+                  <span class="toggle-title">Listing in a second category</span>
+                  <span class="toggle-note">Adds a second insertion fee for the additional category.</span>
+                </span>
+              </label>
+
+              <label class="toggle">
+                <input id="promotedToggle" type="checkbox">
+                <span class="toggle-copy">
+                  <span class="toggle-title">Promoted Listings</span>
+                  <span class="toggle-note">Enter the promotional rate that applies when the item sells.</span>
+                </span>
+              </label>
+
+            </div>
+
+            <div id="promotedBox" class="conditional">
+              <div class="label-row">
+                <label for="promotedRate">Promoted Listings rate</label>
+                <span class="mini-note">% of sale amount</span>
+              </div>
+              <input id="promotedRate" type="number" min="0" step="0.01" value="0.00">
+            </div>
+
+            <div class="toggle-grid" style="margin-top:10px;">
+
+              <label class="toggle">
+                <input id="reserveToggle" type="checkbox">
+                <span class="toggle-copy">
+                  <span class="toggle-title">Reserve Price</span>
+                  <span class="toggle-note">4% of the reserve price, capped at £150 per item.</span>
+                </span>
+              </label>
+
+            </div>
+
+            <div id="reserveBox" class="conditional">
+              <div class="label-row">
+                <label for="reservePrice">Reserve price</label>
+                <span class="mini-note">£</span>
+              </div>
+              <input id="reservePrice" type="number" min="50" step="0.01" value="50.00">
+            </div>
+
+            <div class="toggle-grid" style="margin-top:10px;">
+
+              <label class="toggle">
+                <input id="premiumService" type="checkbox">
+                <span class="toggle-copy">
+                  <span class="toggle-title">Premium Service / Top-rated discount</span>
+                  <span class="toggle-note">10% discount on the variable final value fee for eligible listings.</span>
+                </span>
+              </label>
+
+            </div>
+          </div>
+
+          <button id="calculate" class="calculate-btn" type="button">Calculate eBay fees</button>
+          <div id="error" class="error"></div>
+        </div>
+
+      </div>
+
+      <aside>
+        <div class="card results">
+          <div class="results-head">
+            <div class="section-title">Estimated result</div>
+            <div class="result-main" id="outPayoutMain">£0.00</div>
+            <div class="result-sub">Estimated amount you keep after eBay fees</div>
+            <div style="margin-top:16px; padding-top:14px; border-top:1px solid #d8e2ee; display:flex; justify-content:space-between; gap:16px; align-items:baseline;">
+              <span style="color:#667085; font-size:12px; font-weight:700;">Estimated eBay fees</span>
+              <strong id="totalFees" style="font-size:18px; color:#18212c;">£0.00</strong>
+            </div>
+          </div>
+
+          <div class="breakdown">
+            <div class="break-row"><span>Sale amount</span><strong id="outSale">£0.00</strong></div>
+            <div class="break-row"><span id="rateLabel">Category rate</span><strong id="outRate">—</strong></div>
+            <div class="break-row"><span id="finalValueLabel">Final value fee</span><strong id="outFinalValue">£0.00</strong></div>
+            <div class="break-row"><span>Per-order fee (fixed)</span><strong id="outPerOrder">£0.00</strong></div>
+            <div class="break-row"><span>Regulatory operating fee (0.35%)</span><strong id="outRegulatory">£0.00</strong></div>
+            <div class="break-row"><span id="internationalLabel">International fee (0.00%)</span><strong id="outInternational">£0.00</strong></div>
+            <div class="break-row"><span id="insertionLabel">Insertion fee (fixed)</span><strong id="outInsertion">£0.00</strong></div>
+            <div class="break-row"><span id="optionalLabel">Optional fees</span><strong id="outOptional">£0.00</strong></div>
+            <div class="break-row total"><span>Fees before VAT</span><strong id="outBeforeVat">£0.00</strong></div>
+            <div class="break-row"><span>VAT on eBay fees (20%)</span><strong id="outVat">£0.00</strong></div>
+            <div class="break-row total"><span>Total eBay fees</span><strong id="outTotal">£0.00</strong></div>
+            <div class="break-row payout"><span>Estimated payout after eBay fees</span><strong id="outPayout">£0.00</strong></div>
+
+            <div class="rate-box">
+              <div class="rate-box-title">Effective fee rate</div>
+              <div class="rate-box-value" id="outEffective">0.00%</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="card info-card info-card-bottom">
+        <div class="section-title">What the calculator covers</div>
+        <div class="section-heading" style="font-size:20px;">Built around eBay's UK business fee structure</div>
+
+        <div class="info-list">
+          <div class="info-item">
+            <strong>Final value fee</strong>
+            <span>Category-dependent percentage applied to the sale amount, with the current £0.30 / £0.40 per-order fee.</span>
+          </div>
+          <div class="info-item">
+            <strong>Regulatory operating fee</strong>
+            <span>0.35% of the total sale amount, before VAT.</span>
+          </div>
+          <div class="info-item">
+            <strong>International fee</strong>
+            <span>1.05%, 1.80% or 2.00% depending on the buyer's overseas destination.</span>
+          </div>
+          <div class="info-item">
+            <strong>Listing and optional fees</strong>
+            <span>Insertion fee plus any selected optional charges, such as a second category, Promoted Listings or Reserve Price.</span>
+          </div>
+          <div class="info-item">
+            <strong>Monthly eBay Shop subscriptions (not included in the sale total)</strong>
+            <span>Current UK business Shop prices: Basic £27/month, Featured £77/month, Anchor £437/month. These are fixed monthly costs rather than per-sale fees.</span>
+          </div>
+          <div class="info-item">
+            <strong>Other specialist fees (not included by default)</strong>
+            <span>Classified Ad listing fees and other account-specific services can use separate fee structures. Check the official eBay fee page when using those formats.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>© 2026 Blackwell Components</span>
+      <span>eBay UK business seller calculator</span>
+    </footer>
+  </main>
+
+  <script>
+    const categories = [
+      { group: 'Antiques', label: 'Antiques — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Art', label: 'Art — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Art', label: 'Art NFTs — 5.0%', type: 'flat', rate: 5.0 },
+      { group: 'Baby', label: 'Baby — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Books, Comics & Magazines', label: 'Books, Comics & Magazines — 9.9%', type: 'flat', rate: 9.9 },
+      { group: 'Business, Office & Industrial', label: 'Business, Office & Industrial — 12.5%', type: 'flat', rate: 12.5 },
+
+      { group: 'Cameras & Photography', label: 'Cameras & Photography — general — 9.9%', type: 'flat', rate: 9.9 },
+      { group: 'Cameras & Photography', label: 'Camcorders — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Cameras & Photography', label: 'Digital Cameras — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Cameras & Photography', label: 'Film Photography — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Cameras & Photography', label: 'Lenses & Filters — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+
+      { group: 'Clothes, Shoes & Accessories', label: 'Clothes, Shoes & Accessories — general — 11.9%', type: 'flat', rate: 11.9 },
+      { group: 'Clothes, Shoes & Accessories', label: 'Women\'s Bags & Handbags — 12.9% up to £800, then 7%', type: 'tier', tiers: [[800, 12.9], [Infinity, 7.0]] },
+      { group: 'Clothes, Shoes & Accessories', label: 'Men\'s Trainers — 11.9%; 7% if selling price is £100+', type: 'trainer', rate: 11.9, reducedRate: 7.0 },
+      { group: 'Clothes, Shoes & Accessories', label: 'Women\'s Trainers — 11.9%; 7% if selling price is £100+', type: 'trainer', rate: 11.9, reducedRate: 7.0 },
+
+      { group: 'Coins', label: 'Coins — 10.9% up to £450, then 3%', type: 'tier', tiers: [[450, 10.9], [Infinity, 3.0]] },
+
+      { group: 'Collectables', label: 'Collectables — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Collectables', label: 'Emerging NFTs — 5.0%', type: 'flat', rate: 5.0 },
+      { group: 'Collectables', label: 'Non-Sport Trading Card NFTs — 5.0%', type: 'flat', rate: 5.0 },
+
+      { group: 'Computers, Tablets & Networking', label: 'Computers, Tablets & Networking — general — 9.9%', type: 'flat', rate: 9.9 },
+      { group: 'Computers, Tablets & Networking', label: 'Desktops & All-In-Ones — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Computers, Tablets & Networking', label: 'Drives, Storage & Blank Media — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Computers, Tablets & Networking', label: 'Enterprise Networking, Servers — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Computers, Tablets & Networking', label: 'Tablets & eBook Readers — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Computers, Tablets & Networking', label: 'Laptops & Netbooks — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Computers, Tablets & Networking', label: 'Printers, Scanners & Supplies — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+
+      { group: 'Crafts', label: 'Crafts — 12.9%', type: 'flat', rate: 12.9 },
+      { group: 'Dolls & Bears', label: 'Dolls & Bears — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Event Tickets', label: 'Event Tickets — 12.9%', type: 'flat', rate: 12.9 },
+
+      { group: 'Films & TV', label: 'Films & TV — general — 9.9%', type: 'flat', rate: 9.9 },
+      { group: 'Films & TV', label: 'Film NFTs — 5.0%', type: 'flat', rate: 5.0 },
+      { group: 'Garden & Patio', label: 'Garden & Patio — 10.9%', type: 'flat', rate: 10.9 },
+
+      { group: 'Health & Beauty', label: 'Health & Beauty — general — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Health & Beauty', label: 'Hair Extensions & Wigs — 11.9%', type: 'flat', rate: 11.9 },
+      { group: 'Health & Beauty', label: 'Electronic Smoking, Parts & Accessories — 12.9%', type: 'flat', rate: 12.9 },
+
+      { group: 'Holidays & Travel', label: 'Holidays & Travel — 7.9% up to £650, then 3%', type: 'tier', tiers: [[650, 7.9], [Infinity, 3.0]] },
+
+      { group: 'Home, Furniture & DIY', label: 'Home, Furniture & DIY — general — 11.9% up to £500, then 7.9%', type: 'tier', tiers: [[500, 11.9], [Infinity, 7.9]] },
+      { group: 'Home, Furniture & DIY', label: 'Appliances — 6.9% up to £400, then 3%', type: 'tier', tiers: [[400, 6.9], [Infinity, 3.0]] },
+      { group: 'Home, Furniture & DIY', label: 'DIY Tools & Workshop Equipment — 6.9% up to £400, then 3%', type: 'tier', tiers: [[400, 6.9], [Infinity, 3.0]] },
+      { group: 'Home, Furniture & DIY', label: 'Power Strips & Surge Protectors — 9.9% up to £250, then 7.9%', type: 'tier', tiers: [[250, 9.9], [Infinity, 7.9]] },
+      { group: 'Home, Furniture & DIY', label: 'Furniture / Bath / Other Home Plumbing & Fixtures — 10.9% up to £500, 7.9% to £1,000, then 3%', type: 'tier', tiers: [[500, 10.9], [1000, 7.9], [Infinity, 3.0]] },
+
+      { group: 'Jewellery & Watches', label: 'Jewellery & Watches — general — 14.9% up to £1,000, then 4%', type: 'tier', tiers: [[1000, 14.9], [Infinity, 4.0]] },
+      { group: 'Jewellery & Watches', label: 'Watches, Parts & Accessories — 12.9% up to £750, then 3%', type: 'tier', tiers: [[750, 12.9], [Infinity, 3.0]] },
+
+      { group: 'Mobile Phones & Communication', label: 'Mobile Phones & Communication — general — 9.9%', type: 'flat', rate: 9.9 },
+      { group: 'Mobile Phones & Communication', label: 'Mobile & Smart Phones — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+
+      { group: 'Music', label: 'Music — general — 9.9%', type: 'flat', rate: 9.9 },
+      { group: 'Music', label: 'Music NFTs — 5.0%', type: 'flat', rate: 5.0 },
+      { group: 'Musical Instruments & DJ Equipment', label: 'Musical Instruments & DJ Equipment — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Pet Supplies', label: 'Pet Supplies — 12.9%', type: 'flat', rate: 12.9 },
+      { group: 'Pottery, Ceramics & Glass', label: 'Pottery, Ceramics & Glass — 10.9%', type: 'flat', rate: 10.9 },
+
+      { group: 'Sound & Vision', label: 'Sound & Vision — general — 9.9%', type: 'flat', rate: 9.9 },
+      { group: 'Sound & Vision', label: 'DVD, Blu-ray & Home Cinema — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Sound & Vision', label: 'Headphones — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Sound & Vision', label: 'Home Audio & HiFi Separates — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+      { group: 'Sound & Vision', label: 'Televisions — 6.9% up to £1,000, then 3%', type: 'tier', tiers: [[1000, 6.9], [Infinity, 3.0]] },
+
+      { group: 'Sporting Goods', label: 'Sporting Goods — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Sports Memorabilia', label: 'Sports Memorabilia — general — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Sports Memorabilia', label: 'Sport Trading Card NFTs — 5.0%', type: 'flat', rate: 5.0 },
+      { group: 'Stamps', label: 'Stamps — 10.9%', type: 'flat', rate: 10.9 },
+
+      { group: 'Toys & Games', label: 'Toys & Games — general — 10.9%', type: 'flat', rate: 10.9 },
+      { group: 'Toys & Games', label: 'CCG NFTs — 5.0%', type: 'flat', rate: 5.0 },
+      { group: 'Toys & Games', label: 'Tents — 10.9% up to £250, then 7.9%', type: 'tier', tiers: [[250, 10.9], [Infinity, 7.9]] },
+
+      { group: 'Vehicle Parts & Accessories', label: 'Vehicle Parts & Accessories — 9.5% up to £750, then 3%', type: 'tier', tiers: [[750, 9.5], [Infinity, 3.0]] },
+      { group: 'Vehicle Parts & Accessories', label: 'Tyres — 6.9% up to £750, then 3%', type: 'tier', tiers: [[750, 6.9], [Infinity, 3.0]] },
+      { group: 'Vehicle Parts & Accessories', label: 'GPS & Sat Nav Devices — 6.9% up to £750, then 3%', type: 'tier', tiers: [[750, 6.9], [Infinity, 3.0]] },
+      { group: 'Vehicle Parts & Accessories', label: 'Power Tools & Equipment — 6.9% up to £750, then 3%', type: 'tier', tiers: [[750, 6.9], [Infinity, 3.0]] },
+
+      { group: 'Video Games & Consoles', label: 'Video Games & Consoles — general — 9.9%', type: 'flat', rate: 9.9 },
+      { group: 'Video Games & Consoles', label: 'Video Game Consoles — 6.9% up to £400, then 2%', type: 'tier', tiers: [[400, 6.9], [Infinity, 2.0]] },
+
+      { group: 'Wholesale & Job Lots', label: 'Wholesale & Job Lots — 12.9%', type: 'flat', rate: 12.9 },
+      { group: 'Everything Else', label: 'Everything Else — general — 12.9%', type: 'flat', rate: 12.9 },
+      { group: 'Everything Else', label: 'Memorials & Funerals — 11.9%', type: 'flat', rate: 11.9 }
+    ];
+
+    const categorySelect = document.getElementById('category');
+    const rateHint = document.getElementById('rateHint');
+    const errorBox = document.getElementById('error');
+
+    const optsByGroup = {};
+    categories.forEach((item, index) => {
+      if (!optsByGroup[item.group]) optsByGroup[item.group] = [];
+      optsByGroup[item.group].push({ ...item, index });
+    });
+
+    Object.entries(optsByGroup).forEach(([group, items]) => {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = group;
+      items.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.index;
+        option.textContent = item.label;
+        optgroup.appendChild(option);
+      });
+      categorySelect.appendChild(optgroup);
+    });
+
+    function money(value) {
+      return new Intl.NumberFormat('en-GB', {
+        style: 'currency',
+        currency: 'GBP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(Number.isFinite(value) ? value : 0);
+    }
+
+    function numberFrom(id) {
+      return Number.parseFloat(document.getElementById(id).value) || 0;
+    }
+
+    function percentageFee(amount, rate) {
+      return amount * (rate / 100);
+    }
+
+    function tieredFee(amount, tiers) {
+      let remaining = amount;
+      let previous = 0;
+      let fee = 0;
+
+      for (const [upper, rate] of tiers) {
+        const portion = Math.max(0, Math.min(amount, upper) - previous);
+        fee += portion * (rate / 100);
+        previous = upper;
+        remaining -= portion;
+        if (remaining <= 0) break;
+      }
+
+      return fee;
+    }
+
+    function categoryFee(category, totalSale, itemPrice, performancePoints, premiumDiscount) {
+      const addPoints = Number(performancePoints) || 0;
+
+      if (category.type === 'flat') {
+        const rate = category.rate + addPoints;
+        const variableFee = percentageFee(totalSale, rate);
+        const fee = premiumDiscount ? variableFee * 0.90 : variableFee;
+        return { fee, effectiveRate: totalSale > 0 ? (fee / totalSale) * 100 : 0 };
+      }
+
+      if (category.type === 'tier') {
+        const adjustedTiers = category.tiers.map(([upper, rate]) => [upper, rate + addPoints]);
+        const variableFee = tieredFee(totalSale, adjustedTiers);
+        const fee = premiumDiscount ? variableFee * 0.90 : variableFee;
+        return {
+          fee,
+          effectiveRate: totalSale > 0 ? (fee / totalSale) * 100 : 0
+        };
+      }
+
+      if (category.type === 'trainer') {
+        const baseRate = itemPrice >= 100 ? category.reducedRate : category.rate;
+        const rate = baseRate + addPoints;
+        const variableFee = percentageFee(totalSale, rate);
+        const fee = premiumDiscount ? variableFee * 0.90 : variableFee;
+        return { fee, effectiveRate: totalSale > 0 ? (fee / totalSale) * 100 : 0 };
+      }
+
+      return { fee: 0, effectiveRate: 0 };
+    }
+
+
+    function showConditional(toggleId, boxId) {
+      const toggle = document.getElementById(toggleId);
+      const box = document.getElementById(boxId);
+      const update = () => box.classList.toggle('show', toggle.checked);
+      toggle.addEventListener('change', update);
+      update();
+    }
+
+    showConditional('promotedToggle', 'promotedBox');
+    showConditional('reserveToggle', 'reserveBox');
+
+    categorySelect.addEventListener('change', () => {
+      const selected = categories[Number(categorySelect.value)];
+      if (!selected) {
+        rateHint.textContent = 'Select a category';
+        return;
+      }
+      if (selected.type === 'flat') rateHint.textContent = `${selected.rate.toFixed(1)}%`;
+      if (selected.type === 'trainer') rateHint.textContent = `11.9% / 7% at £100+`;
+      if (selected.type === 'tier') rateHint.textContent = 'Tiered rate';
+    });
+
+    let hasCalculated = false;
+
+    function calculateFees(showErrors = true) {
+      if (showErrors) {
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+      }
+
+      const salePrice = numberFrom('salePrice');
+      const category = categories[Number(categorySelect.value)];
+
+      if (!(salePrice > 0)) {
+        if (showErrors) {
+          errorBox.textContent = 'Please enter a sold price greater than £0.00.';
+          errorBox.style.display = 'block';
+        }
+        return false;
+      }
+
+      if (!category) {
+        if (showErrors) {
+          errorBox.textContent = 'Please select the eBay category or subcategory.';
+          errorBox.style.display = 'block';
+        }
+        return false;
+      }
+
+      const totalSale = salePrice;
+      const premiumDiscount = document.getElementById('premiumService').checked;
+      const catResult = categoryFee(category, totalSale, salePrice, 0, premiumDiscount);
+
+      const perOrder = totalSale <= 10 ? 0.30 : 0.40;
+      const regulatory = percentageFee(totalSale, 0.35);
+
+      const internationalRates = {
+        uk: 0,
+        euro: 1.05,
+        usca: 1.80,
+        other: 2.00
+      };
+      const internationalRate = internationalRates[document.getElementById('international').value] || 0;
+      const international = percentageFee(totalSale, internationalRate);
+
+      const insertionBase = numberFrom('insertionFee');
+      const insertion = insertionBase * (document.getElementById('secondCategory').checked ? 2 : 1);
+
+      let optional = 0;
+      if (document.getElementById('promotedToggle').checked) {
+        optional += percentageFee(totalSale, numberFrom('promotedRate'));
+      }
+      if (document.getElementById('reserveToggle').checked) {
+        optional += Math.min(numberFrom('reservePrice') * 0.04, 150);
+      }
+
+      const beforeVat = catResult.fee + perOrder + regulatory + international + insertion + optional;
+      const vat = beforeVat * 0.20;
+      const totalFees = beforeVat + vat;
+      const payout = totalSale - totalFees;
+      const effective = totalSale > 0 ? (totalFees / totalSale) * 100 : 0;
+
+      let categoryRateText = '';
+      if (category.type === 'flat') {
+        categoryRateText = `${category.rate.toFixed(1)}%`;
+      } else if (category.type === 'tier') {
+        categoryRateText = category.tiers
+          .map(([upper, rate], i, arr) => {
+            if (upper === Infinity) return `${rate.toFixed(1)}% thereafter`;
+            return i === 0 ? `${rate.toFixed(1)}% up to £${upper}` : `${rate.toFixed(1)}%`;
+          })
+          .join(' / ');
+      } else if (category.type === 'trainer') {
+        categoryRateText = `${category.rate.toFixed(1)}% / ${category.reducedRate.toFixed(1)}% at £100+`;
+      }
+
+      document.getElementById('outSale').textContent = money(totalSale);
+      document.getElementById('outRate').textContent = categoryRateText || `${catResult.effectiveRate.toFixed(2)}% effective`;
+      document.getElementById('rateLabel').textContent = 'Category rate';
+      document.getElementById('finalValueLabel').textContent = category.type === 'flat' ? `Final value fee (${category.rate.toFixed(1)}%)` : `Final value fee (${categoryRateText})`;
+      document.getElementById('outFinalValue').textContent = money(catResult.fee);
+      document.getElementById('outPerOrder').textContent = money(perOrder);
+      document.getElementById('outRegulatory').textContent = money(regulatory);
+      document.getElementById('internationalLabel').textContent = `International fee (${internationalRate.toFixed(2)}%)`;
+      document.getElementById('outInternational').textContent = money(international);
+      document.getElementById('insertionLabel').textContent = document.getElementById('secondCategory').checked ? 'Insertion fee (2 listings)' : 'Insertion fee (1 listing)';
+      document.getElementById('outInsertion').textContent = money(insertion);
+      document.getElementById('optionalLabel').textContent = 'Optional fees';
+      document.getElementById('outOptional').textContent = money(optional);
+      document.getElementById('outBeforeVat').textContent = money(beforeVat);
+      document.getElementById('outVat').textContent = money(vat);
+      document.getElementById('outTotal').textContent = money(totalFees);
+      document.getElementById('totalFees').textContent = money(totalFees);
+      document.getElementById('outPayoutMain').textContent = money(payout);
+      document.getElementById('outPayout').textContent = money(payout);
+      document.getElementById('outEffective').textContent = `${effective.toFixed(2)}%`;
+      return true;
+    }
+
+    document.getElementById('calculate').addEventListener('click', () => {
+      if (calculateFees(true)) {
+        hasCalculated = true;
+      }
+    });
+
+    const liveUpdateFields = [
+      'salePrice',
+      'category',
+      'international',
+      'insertionFee',
+      'secondCategory',
+      'promotedToggle',
+      'promotedRate',
+      'reserveToggle',
+      'reservePrice',
+      'premiumService'
+    ];
+
+    liveUpdateFields.forEach(id => {
+      const el = document.getElementById(id);
+      const eventName = el.type === 'checkbox' || el.tagName === 'SELECT' ? 'change' : 'input';
+      el.addEventListener(eventName, () => {
+        if (hasCalculated) {
+          calculateFees(false);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
